@@ -26,6 +26,8 @@ sudo apt-get install -y \
   gettext \
   git \
   jq \
+  libssl-dev \
+  pkg-config \
   ripgrep \
   unzip \
   zoxide
