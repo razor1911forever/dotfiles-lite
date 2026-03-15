@@ -69,6 +69,6 @@ install_gh_binary    eza          eza-community/eza          "x86_64-unknown-lin
 install_gh_binary    dust         bootandy/dust              "x86_64-unknown-linux-gnu\\.tar\\.gz$"
 install_gh_binary    procs        dalance/procs              "x86_64-linux\\.zip$"
 install_gh_binary    tree-sitter  tree-sitter/tree-sitter    "linux-x64\\.gz$"
-install_gh_binary    lazygit      jesseduffield/lazygit      "Linux_x86_64\\.tar\\.gz$"
+install_gh_binary    lazygit      jesseduffield/lazygit      "linux_x86_64\\.tar\\.gz$"
 install_gh_binary    lazydocker   jesseduffield/lazydocker   "Linux_x86_64\\.tar\\.gz$"
-install_gh_binary    yazi         sxyazi/yazi                "x86_64-unknown-linux-gnu\\.zip$"
+install_gh_binary    yazi         sxyazi/yazi                "yazi-x86_64-unknown-linux-gnu\\.zip$"
