@@ -15,7 +15,6 @@ local opts = {
 
 return {
   "VidocqH/lsp-lens.nvim",
-  cond = not vim.g.lightweight,
   opts = opts,
   event = "LspAttach",
   keys = {

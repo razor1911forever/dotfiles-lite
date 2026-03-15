@@ -1,7 +1,6 @@
 return {
   {
     "mfussenegger/nvim-lint",
-    cond = not vim.g.lightweight,
     -- dir = "~/git/nvim-lint",
     event = "VeryLazy",
     lazy = true,

@@ -35,9 +35,6 @@ return {
   lazy = true,
   dependencies = {
     "nvim-treesitter/nvim-treesitter",
-    {
-      "JoosepAlviste/nvim-ts-context-commentstring",
-      cond = not vim.g.lightweight,
-    },
+    "JoosepAlviste/nvim-ts-context-commentstring",
   },
 }

@@ -84,12 +84,9 @@ local function init()
   })
 end
 
-local not_lightweight = not vim.g.lightweight
-
 return {
   {
     "zapling/mason-conform.nvim",
-    cond = not_lightweight,
     event = "BufWritePost",
     config = true,
     dependencies = {
@@ -100,7 +97,6 @@ return {
   },
   {
     "stevearc/conform.nvim",
-    cond = not_lightweight,
     event = { "BufWritePre" },
     opts = opts,
     cmd = { "ConformInfo" },

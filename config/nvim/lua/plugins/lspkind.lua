@@ -36,7 +36,6 @@ end
 
 return {
   "onsails/lspkind-nvim",
-  cond = not vim.g.lightweight,
   config = config,
   event = "InsertEnter",
   dependencies = {

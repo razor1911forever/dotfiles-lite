@@ -20,7 +20,6 @@ local opts = {
 
 return {
   "supermaven-inc/supermaven-nvim",
-  cond = not vim.g.lightweight,
   opts = opts,
   keys = {
     m("<M-]>", "SupermavenToggle", { "n", "i" }),

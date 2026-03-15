@@ -143,7 +143,6 @@ end
 
 return {
   "hrsh7th/nvim-cmp",
-  cond = not vim.g.lightweight,
   config = config,
   event = "InsertEnter",
   dependencies = {

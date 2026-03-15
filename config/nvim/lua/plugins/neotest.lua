@@ -3,7 +3,6 @@ local m = u.lazy_map
 
 return {
   "nvim-neotest/neotest",
-  cond = not vim.g.lightweight,
   dependencies = {
     "nvim-neotest/nvim-nio",
     "nvim-lua/plenary.nvim",

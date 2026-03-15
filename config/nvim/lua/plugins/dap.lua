@@ -1,12 +1,10 @@
 local u = require("util")
 local m = u.lazy_map
 
-local not_lightweight = not vim.g.lightweight
 
 return {
   {
     "mfussenegger/nvim-dap",
-    cond = not_lightweight,
     keys = {
       m("<F1>", [[DapStepInto]]),
       m("<F2>", [[DapStepOver]]),
@@ -37,7 +35,6 @@ return {
   },
   {
     "jay-babu/mason-nvim-dap.nvim",
-    cond = not_lightweight,
     opts = {
       ensure_installed = {
         "bash",
@@ -50,13 +47,11 @@ return {
   },
   {
     "theHamsta/nvim-dap-virtual-text",
-    cond = not_lightweight,
     config = true,
     lazy = true,
   },
   {
     "ofirgall/goto-breakpoints.nvim",
-    cond = not_lightweight,
     keys = {
       m("]r", [[lua require('goto-breakpoints').next()]]),
       m("[r", [[lua require('goto-breakpoints').prev()]]),
@@ -66,7 +61,6 @@ return {
   -- TODO: 2025-08-03 - persistent breakpoints is not working
   {
     "Weissle/persistent-breakpoints.nvim",
-    cond = not_lightweight,
     opts = {
       load_breakpoints_event = { "BufReadPre" },
     },
@@ -78,7 +72,6 @@ return {
   },
   {
     "igorlfs/nvim-dap-view",
-    cond = not_lightweight,
     opts = {
       winbar = {
         show = true,

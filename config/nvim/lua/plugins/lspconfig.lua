@@ -1,6 +1,5 @@
 return {
   "neovim/nvim-lspconfig",
-  cond = not vim.g.lightweight,
   config = function()
     require("neoconf").setup({})
     require("config.lsp")

@@ -2,7 +2,6 @@ local m = require("util").lazy_map
 
 return {
   "kristijanhusak/vim-dadbod-ui",
-  cond = not vim.g.lightweight,
   dependencies = {
     {
       "tpope/vim-dadbod",

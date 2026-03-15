@@ -1,7 +1,6 @@
 return {
   {
     "folke/lazydev.nvim",
-    cond = not vim.g.lightweight,
     ft = "lua",
     opts = {
       library = {

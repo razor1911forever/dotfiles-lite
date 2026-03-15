@@ -1,10 +1,7 @@
-local not_lightweight = not vim.g.lightweight
-
 return {
   {
     -- "Jay-Madden/auto-fix-return.nvim",
     dir = "~/git/auto-fix-return.nvim",
-    cond = not_lightweight,
     ft = { "go" },
     config = true,
     opts = {
@@ -18,13 +15,11 @@ return {
   },
   {
     "catgoose/templ-goto-definition",
-    cond = not_lightweight,
     ft = { "go", "templ" },
     config = true,
   },
   {
     "fredrikaverpil/godoc.nvim",
-    cond = not_lightweight,
     ft = { "go" },
     version = "*",
     build = "go install github.com/lotusirous/gostdsym/stdsym@latest", -- optional
