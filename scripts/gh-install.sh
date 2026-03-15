@@ -71,3 +71,4 @@ install_gh_binary    procs        dalance/procs              "x86_64-linux\\.zip
 install_gh_binary    tree-sitter  tree-sitter/tree-sitter    "linux-x64\\.gz$"
 install_gh_binary    lazygit      jesseduffield/lazygit      "Linux_x86_64\\.tar\\.gz$"
 install_gh_binary    lazydocker   jesseduffield/lazydocker   "Linux_x86_64\\.tar\\.gz$"
+install_gh_binary    yazi         sxyazi/yazi                "x86_64-unknown-linux-gnu\\.zip$"
