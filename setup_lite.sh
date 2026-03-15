@@ -124,6 +124,12 @@ for script in scripts/*.sh; do
   bash "$script"
 done
 
+# Install neovim plugins
+echo "Installing neovim plugins..."
+NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
+echo "Running plugin sync again..."
+NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
+
 # Save version lockfile
 LOCKFILE="$SCRIPT_DIR/versions.json"
 get_ver() { command -v "$1" &>/dev/null && "$@" 2>/dev/null | head -1 || echo "not installed"; }
