@@ -74,17 +74,17 @@ c("TagStackUp", function()
 end)
 c("ToggleCmdHeight", f.toggle_cmdheight)
 c("UpdateAndSyncAll", function()
-  local cmds = {
-    "Lazy sync",
-    "TSUpdate",
-  }
   if not vim.g.lightweight then
-    table.insert(cmds, 1, "MasonUpdate")
+    cmd("MasonUpdate")
   end
-  for _, cm in ipairs(cmds) do
-    cmd(cm)
-    vim.print(string.format("Running: %s", cm))
-  end
+  cmd("Lazy sync")
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "LazySync",
+    once = true,
+    callback = function()
+      cmd("TSUpdate")
+    end,
+  })
 end)
 c("FoldParagraph", function()
   local foldclosed = fn.foldclosed(fn.line("."))
