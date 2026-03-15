@@ -1,7 +1,10 @@
 return {
   "numToStr/Comment.nvim",
   config = function()
-    local prehook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook()
+    local prehook = nil
+    if not vim.g.lightweight then
+      prehook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook()
+    end
     require("Comment").setup({
       padding = true,
       sticky = true,
@@ -32,6 +35,9 @@ return {
   lazy = true,
   dependencies = {
     "nvim-treesitter/nvim-treesitter",
-    "JoosepAlviste/nvim-ts-context-commentstring",
+    {
+      "JoosepAlviste/nvim-ts-context-commentstring",
+      cond = not vim.g.lightweight,
+    },
   },
 }

@@ -75,8 +75,8 @@ end)
 c("ToggleCmdHeight", f.toggle_cmdheight)
 c("UpdateAndSyncAll", function()
   local cmds = {
-    "TSUpdate",
     "Lazy sync",
+    "TSUpdate",
   }
   if not vim.g.lightweight then
     table.insert(cmds, 1, "MasonUpdate")
