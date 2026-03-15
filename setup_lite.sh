@@ -18,15 +18,11 @@ sudo apt-get update
 sudo apt-get upgrade -y
 
 sudo apt-get install -y \
-  build-essential \
   curl \
   fd-find \
   fzf \
   git \
   jq \
-  libclang-dev \
-  libssl-dev \
-  pkg-config \
   ripgrep \
   unzip \
   zoxide
@@ -84,26 +80,47 @@ else
   curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
 fi
 
-# Rust toolchain (install before omf so ~/.cargo/env.fish exists when fish spawns)
-if [[ ! -x "$(command -v rustc)" ]]; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-  source "$HOME/.cargo/env"
-else
-  source "$HOME/.cargo/env"
-  echo "Rust already installed ($(rustc --version)), skipping"
-fi
-
 # Install omf
 if [[ ! -d $HOME/.local/share/omf ]]; then
   fish -c "curl -sL https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > /tmp/omf-install.fish && fish /tmp/omf-install.fish --noninteractive"
 fi
 
-cargos=("eza" "du-dust" "procs" "tree-sitter-cli")
-for cargo in "${cargos[@]}"; do
-  if [[ ! -x "$(command -v "$cargo")" ]]; then
-    cargo install "$cargo"
+# Install CLI tools from prebuilt binaries
+BIN="$HOME/.local/bin"
+
+install_github_binary() {
+  local cmd="$1" repo="$2" pattern="$3"
+  if [[ -x "$(command -v "$cmd")" ]]; then
+    echo "$cmd already installed, skipping"
+    return
   fi
-done
+  echo "Installing $cmd..."
+  local url
+  url=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r ".assets[] | select(.name | test(\"$pattern\")) | .browser_download_url" | head -1)
+  if [[ -z "$url" ]]; then
+    echo "Warning: Could not find binary for $cmd"
+    return
+  fi
+  local tmp="/tmp/$cmd-download"
+  mkdir -p "$tmp"
+  curl -sL "$url" -o "$tmp/archive"
+  if [[ "$url" == *.tar.gz || "$url" == *.tgz ]]; then
+    tar -xzf "$tmp/archive" -C "$tmp"
+  elif [[ "$url" == *.zip ]]; then
+    unzip -qo "$tmp/archive" -d "$tmp"
+  elif [[ "$url" == *.gz ]]; then
+    gunzip -c "$tmp/archive" > "$tmp/$cmd"
+  fi
+  find "$tmp" -name "$cmd" -type f -executable -exec cp {} "$BIN/" \; 2>/dev/null || \
+    find "$tmp" -name "$cmd" -type f -exec cp {} "$BIN/" \;
+  chmod +x "$BIN/$cmd"
+  rm -rf "$tmp"
+}
+
+install_github_binary "eza"          "eza-community/eza"          "x86_64-unknown-linux-gnu\\.tar\\.gz$"
+install_github_binary "dust"         "bootandy/dust"              "x86_64-unknown-linux-gnu\\.tar\\.gz$"
+install_github_binary "procs"        "dalance/procs"              "x86_64-linux\\.zip$"
+install_github_binary "tree-sitter"  "tree-sitter/tree-sitter"    "linux-x64\\.gz$"
 
 # Install gh
 if [[ ! -x "$(command -v gh)" ]]; then
