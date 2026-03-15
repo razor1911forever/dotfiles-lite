@@ -38,8 +38,14 @@ M.disabled_plugins = {
   "godoc.nvim",
   -- Database
   "vim-dadbod-ui",
-  -- Treesitter extras
+  -- Treesitter
+  "nvim-treesitter",
+  "nvim-treesitter-textobjects",
   "nvim-ts-context-commentstring",
+  "nvim-treesitter-context",
+  "template-literal-comments.nvim",
+  "nvim-dap-repl-highlights",
+  "ts-node-action",
 }
 
 return M
