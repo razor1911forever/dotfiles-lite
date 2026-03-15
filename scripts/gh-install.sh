@@ -22,7 +22,7 @@ install_gh_binary() {
 
   local url
   url=$(curl -s "https://api.github.com/repos/$repo/releases/latest" \
-    | jq -r ".assets[] | select(.name | test(\"$pattern\")) | .browser_download_url" \
+    | jq -r --arg pat "$pattern" '.assets[] | select(.name | test($pat)) | .browser_download_url' \
     | head -1)
 
   if [[ -z "$url" || "$url" == "null" ]]; then
