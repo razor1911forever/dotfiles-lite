@@ -57,8 +57,8 @@ if [[ ! -d $NEOVIM_REPO ]]; then
   git clone https://github.com/neovim/neovim.git
 fi
 cd "$NEOVIM_REPO"
+git fetch --tags --force
 git checkout nightly
-git pull
 sudo make clean
 sudo make CMAKE_BUILD_TYPE=Release
 sudo make install
