@@ -131,7 +131,13 @@ local config = function()
     },
   }
 
-  require("nvim-treesitter.configs").setup(opts)
+  local ok, ts_configs = pcall(require, "nvim-treesitter.configs")
+  if ok then
+    ts_configs.setup(opts)
+  else
+    require("nvim-treesitter").setup({})
+    require("nvim-treesitter").install(opts.ensure_installed)
+  end
 
   vim.treesitter.language.register("markdown", "octo")
 
