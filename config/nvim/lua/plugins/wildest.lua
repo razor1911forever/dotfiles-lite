@@ -184,5 +184,6 @@ if dev == true then
 else
   return e("keep", plugin, {
     "catgoose/wildest.nvim",
+    build = "make -C csrc",
   })
 end
