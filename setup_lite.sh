@@ -144,6 +144,7 @@ for script in scripts/*.sh; do
 done
 
 # Install neovim plugins
+export PATH="$HOME/.local/bin:$PATH"
 echo "Installing neovim plugins..."
 NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 echo "Running plugin sync again..."
