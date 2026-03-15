@@ -15,6 +15,9 @@ fi
 cd "$repo_dir" || exit
 git pull
 
+# Ensure go is in PATH
+[[ -f /etc/profile.d/golang_path.sh ]] && source /etc/profile.d/golang_path.sh
+
 # Check if Go needs updating
 if command -v go &>/dev/null; then
   INSTALLED=$(go version 2>/dev/null | grep -oP 'go\K[0-9.]+')

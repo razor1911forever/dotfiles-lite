@@ -76,10 +76,10 @@ else
 fi
 
 # FNM (node version manager)
-if [[ ! -x "$(command -v fnm)" ]]; then
-  curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+if [[ -x "$HOME/.local/share/fnm/fnm" ]] || [[ -x "$(command -v fnm)" ]]; then
+  echo "fnm already installed, skipping"
 else
-  echo "fnm already installed ($(fnm --version)), skipping"
+  curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
 fi
 
 # Rust toolchain (install before omf so ~/.cargo/env.fish exists when fish spawns)
