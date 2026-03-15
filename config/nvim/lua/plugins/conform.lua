@@ -1,0 +1,113 @@
+local m = require("util").lazy_map
+local c = require("util").create_cmd
+
+local opts = {
+  formatters_by_ft = {
+    css = { "prettierd" },
+    html = { "prettierd" },
+    htmlangular = { "prettierd" },
+    javascript = { "prettierd" },
+    json = { "prettierd" },
+    jsonc = { "prettierd" },
+    lua = { "stylua" },
+    scss = { "prettierd" },
+    typescript = { "prettierd" },
+    fish = { "fish_indent" },
+    sh = { "shfmt", "shellharden" },
+    bash = { "shfmt", "shellharden" },
+    markdown = { "cbfmt", "prettierd", "markdownlint" },
+    go = { "goimports", "gofumpt" },
+    templ = {
+      "templ",
+      "injected",
+    },
+  },
+  format_on_save = function(bufnr)
+    local disabled = require("neoconf").get("plugins.conform.disabled")
+    ---@diagnostic disable-next-line: undefined-field
+    if disabled or vim.b[bufnr].disable_autoformat or vim.g.disable_autoformat then
+      return
+    end
+    if
+      vim.bo.filetype == "templ"
+      and #vim.diagnostic.get(0, { severity = { min = vim.diagnostic.severity.ERROR } }) > 0
+    then
+      vim.lsp.buf.format({ async = true })
+      return nil
+    end
+    return {
+      timeout_ms = 500,
+      lsp_fallback = true,
+    }
+  end,
+  log_level = vim.log.levels.DEBUG,
+  notify_on_error = true,
+  formatters = {
+    shfmt = {
+      prepend_args = { "-i", "2" },
+    },
+    shellharden = {
+      prepend_args = { "--transform" },
+    },
+    cbfmt = {
+      prepend_args = { "--config", os.getenv("HOME") .. "/.config/cbfmt/cbfmt.toml" },
+    },
+  },
+}
+
+local function init()
+  local function get_level(args)
+    return args.bang and "g" or "b"
+  end
+  local function notify(args)
+    local level = get_level(args)
+    require("notify").notify(
+      string.format(
+        "Auto formatting %s %s",
+        vim[level].disable_autoformat and "enabled" or "disabled",
+        level == "b" and string.format("for buffer id: %s", vim.api.nvim_get_current_buf())
+          or "globally"
+      ),
+      vim.log.levels.INFO,
+      ---@diagnostic disable-next-line: missing-fields
+      {
+        title = "conform.nvim formatting",
+      }
+    )
+  end
+  c("ConformFormatToggle", function(args)
+    notify(args)
+    local level = get_level(args)
+    vim[level].disable_autoformat = not vim[level].disable_autoformat
+  end, {
+    bang = true,
+  })
+end
+
+local not_lightweight = not vim.g.lightweight
+
+return {
+  {
+    "zapling/mason-conform.nvim",
+    cond = not_lightweight,
+    event = "BufWritePost",
+    config = true,
+    dependencies = {
+      "mason-org/mason.nvim",
+      "stevearc/conform.nvim",
+    },
+    lazy = true,
+  },
+  {
+    "stevearc/conform.nvim",
+    cond = not_lightweight,
+    event = { "BufWritePre" },
+    opts = opts,
+    cmd = { "ConformInfo" },
+    keys = {
+      m("<leader>ci", [[ConformInfo]]),
+    },
+    init = init,
+    lazy = true,
+  },
+}

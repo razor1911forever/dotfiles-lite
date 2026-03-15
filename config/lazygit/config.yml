@@ -1,0 +1,10 @@
+os:
+    edit: 'nvim {{filename}}'
+    editAtLine: 'nvim --line={{line}} {{filename}}'
+    editAtLineAndWait: 'nvim --remote-expr "execute(\"normal! :\" . {{line}} . \"\"):silent edit! {{filename}}"'
+gui:
+    screenMode: 'normal' # one of 'normal' | 'half' | 'full' default is 'normal'
+    scrollHeight: 2
+    scrollPastBottom: true
+    showBottomLine: false
+notARepository: 'skip'

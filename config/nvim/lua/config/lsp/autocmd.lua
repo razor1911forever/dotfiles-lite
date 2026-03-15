@@ -1,0 +1,114 @@
+local M = {}
+
+local function inlay_hints_autocmd(bufnr)
+  local inlay_hints_group = vim.api.nvim_create_augroup("LSP_inlayHints", { clear = false })
+  vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+    group = inlay_hints_group,
+    buffer = bufnr,
+    callback = function()
+      vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end,
+  })
+  vim.api.nvim_create_autocmd("InsertEnter", {
+    group = inlay_hints_group,
+    buffer = bufnr,
+    callback = function()
+      vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end,
+  })
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    group = inlay_hints_group,
+    buffer = bufnr,
+    callback = function()
+      vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+    end,
+  })
+end
+
+function M.inlay_hints()
+  return inlay_hints_autocmd
+end
+
+function M.init()
+  -- Disable Neovim's built-in LSP document color highlighting (enabled by default).
+  -- Colorizer handles all color highlighting instead.
+  vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+      if vim.lsp.document_color then
+        vim.lsp.document_color.enable(false, args.buf)
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("LspAttach", {
+    group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+    callback = function(event)
+      local bufopts = { noremap = true, silent = true, buffer = event.buf }
+      vim.keymap.set("n", "[g", function()
+        vim.cmd("DiagnosticsErrorJumpPrev")
+      end, bufopts)
+      vim.keymap.set("n", "]g", function()
+        vim.cmd("DiagnosticsErrorJumpNext")
+      end, bufopts)
+      vim.keymap.set("n", "[G", function()
+        vim.cmd("DiagnosticsJumpPrev")
+      end, bufopts)
+      vim.keymap.set("n", "]G", function()
+        vim.cmd("DiagnosticsJumpNext")
+      end, bufopts)
+
+      -- :help lsp-defaults
+      -- - "grn" is mapped in Normal mode to |vim.lsp.buf.rename()|
+      -- - "gra" is mapped in Normal and Visual mode to |vim.lsp.buf.code_action()|
+      -- - "grr" is mapped in Normal mode to |vim.lsp.buf.references()|
+      -- - "gri" is mapped in Normal mode to |vim.lsp.buf.implementation()|
+      -- - "grt" is mapped in Normal mode to |vim.lsp.buf.type_definition()|
+      -- - "gO" is mapped in Normal mode to |vim.lsp.buf.document_symbol()|
+
+      vim.keymap.set("n", "<leader>dd", vim.diagnostic.setqflist, bufopts)
+      vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
+      vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
+      vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, bufopts)
+
+      vim.keymap.set("n", "L", function()
+        vim.lsp.buf.hover({ border = "rounded" })
+      end, bufopts)
+      vim.keymap.set("n", "<leader>di", function()
+        local bufnr = event.buf
+        local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+        if enabled then
+          vim.api.nvim_create_augroup("LSP_inlayHints", { clear = true })
+        else
+          M.inlay_hints()(bufnr)
+        end
+        vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
+        require("notify").notify(
+          string.format(
+            "Inlay hints %s for buffer %d",
+            not enabled and "enabled" or "disabled",
+            bufnr
+          ),
+          vim.log.levels.INFO,
+          ---@diagnostic disable-next-line: missing-fields
+          {
+            title = "LSP inlay hints",
+          }
+        )
+      end, bufopts)
+      vim.keymap.set("n", "<leader>dI", function()
+        local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })
+        vim.lsp.inlay_hint.enable(not enabled)
+        require("notify").notify(
+          string.format("Inlay hints %s globally", not enabled and "enabled" or "disabled"),
+          vim.log.levels.INFO,
+          ---@diagnostic disable-next-line: missing-fields
+          {
+            title = "LSP inlay hints",
+          }
+        )
+      end, { noremap = bufopts.noremap, silent = bufopts.silent })
+    end,
+  })
+end
+
+return M

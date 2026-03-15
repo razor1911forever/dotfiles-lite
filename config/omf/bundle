@@ -1,0 +1,7 @@
+package foreign-env
+package fuck
+package https://github.com/edc/bass
+package https://github.com/james2doyle/omf-plugin-fnm
+package https://github.com/jhillyerd/plugin-git
+package neovim
+theme default
