@@ -26,6 +26,7 @@ sudo apt-get install -y \
   gettext \
   git \
   jq \
+  libclang-dev \
   libssl-dev \
   pkg-config \
   ripgrep \
