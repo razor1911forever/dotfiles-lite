@@ -92,9 +92,6 @@ for cargo in "${cargos[@]}"; do
     cargo install "$cargo"
   fi
 done
-if [[ ! -x "$(command -v yazi)" ]]; then
-  cargo install --force yazi-build
-fi
 
 # Install gh
 if [[ ! -x "$(command -v gh)" ]]; then
