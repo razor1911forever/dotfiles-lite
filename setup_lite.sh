@@ -75,15 +75,21 @@ else
   echo "Neovim already up to date ($AFTER), skipping build"
 fi
 
-# FNM (node version manager - needed for treesitter)
-curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+# FNM (node version manager)
+if [[ ! -x "$(command -v fnm)" ]]; then
+  curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+else
+  echo "fnm already installed ($(fnm --version)), skipping"
+fi
 
 # Rust toolchain (install before omf so ~/.cargo/env.fish exists when fish spawns)
 if [[ ! -x "$(command -v rustc)" ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  source "$HOME/.cargo/env"
+else
+  source "$HOME/.cargo/env"
+  echo "Rust already installed ($(rustc --version)), skipping"
 fi
-source "$HOME/.cargo/env"
-rustup update
 
 # Install omf
 if [[ ! -d $HOME/.local/share/omf ]]; then
