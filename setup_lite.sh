@@ -74,17 +74,17 @@ fi
 # FNM (node version manager - needed for treesitter)
 curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
 
-# Install omf
-if [[ ! -d $HOME/.local/share/omf ]]; then
-  fish -c "curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish"
-fi
-
-# Rust toolchain
+# Rust toolchain (install before omf so ~/.cargo/env.fish exists when fish spawns)
 if [[ ! -x "$(command -v rustc)" ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
 source "$HOME/.cargo/env"
 rustup update
+
+# Install omf
+if [[ ! -d $HOME/.local/share/omf ]]; then
+  fish -c "curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish"
+fi
 
 cargos=("eza" "du-dust" "procs")
 for cargo in "${cargos[@]}"; do

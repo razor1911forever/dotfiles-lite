@@ -59,7 +59,14 @@ done
 NEOVIM_REPO=$HOME/git/neovim
 if [[ -d $NEOVIM_REPO ]]; then
   cd "$NEOVIM_REPO" || exit
-  if [[ $(git pull) != *"Already up to date"* ]]; then
+  BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
+  git fetch --tags --force
+  git checkout nightly
+  AFTER=$(git rev-parse HEAD)
+  if [[ "$BEFORE" != "$AFTER" ]]; then
+    echo "Neovim changed ($BEFORE -> $AFTER), building..."
     sudo make clean && sudo make CMAKE_BUILD_TYPE=Release && sudo make install
+  else
+    echo "Neovim already up to date ($AFTER), skipping build"
   fi
 fi
