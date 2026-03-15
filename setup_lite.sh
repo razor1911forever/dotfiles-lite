@@ -6,6 +6,7 @@
 
 set -e
 
+SCRIPT_DIR=$PWD
 CONFIG_DIR=$PWD/config
 
 if ! sudo true; then
@@ -109,6 +110,7 @@ if [[ ! -f "$LITE_CONF" ]] || ! grep -q NVIM_LIGHTWEIGHT "$LITE_CONF" 2>/dev/nul
 fi
 
 # Run scripts
+cd "$SCRIPT_DIR"
 for script in scripts/*.sh; do
   bash "$script"
 done
