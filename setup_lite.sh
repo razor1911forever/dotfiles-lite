@@ -18,12 +18,9 @@ sudo apt-get update
 sudo apt-get upgrade -y
 
 sudo apt-get install -y \
-  build-essential \
-  cmake \
   curl \
   fd-find \
   fzf \
-  gettext \
   git \
   jq \
   libclang-dev \
@@ -54,25 +51,29 @@ for dir in "$CONFIG_DIR"/*/; do
   ln -s "$dir" "$target"
 done
 
-# Build neovim nightly from source
-NEOVIM_REPO=$HOME/git/neovim
-if [[ ! -d $NEOVIM_REPO ]]; then
-  mkdir -p "$HOME/git"
-  cd "$HOME/git"
-  git clone https://github.com/neovim/neovim.git
+# Install neovim nightly binary
+NVIM_DIR="$HOME/.local/bin"
+NVIM_BIN="$NVIM_DIR/nvim"
+NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
+NVIM_URL="https://github.com/neovim/neovim/releases/download/nightly/$NVIM_TARBALL"
+
+LATEST_SHA=$(curl -sL "https://github.com/neovim/neovim/releases/download/nightly/$NVIM_TARBALL.sha256sum" | awk '{print $1}')
+CURRENT_SHA=""
+if [[ -f "$NVIM_DIR/$NVIM_TARBALL.sha256" ]]; then
+  CURRENT_SHA=$(cat "$NVIM_DIR/$NVIM_TARBALL.sha256")
 fi
-cd "$NEOVIM_REPO"
-BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
-git fetch --tags --force
-git checkout nightly
-AFTER=$(git rev-parse HEAD)
-if [[ "$BEFORE" != "$AFTER" || ! -x "$(command -v nvim)" ]]; then
-  echo "Neovim changed ($BEFORE -> $AFTER), building..."
-  sudo make clean
-  sudo make CMAKE_BUILD_TYPE=Release
-  sudo make install
+
+if [[ "$LATEST_SHA" != "$CURRENT_SHA" ]] || [[ ! -x "$NVIM_BIN" ]]; then
+  echo "Downloading neovim nightly..."
+  curl -Lo "/tmp/$NVIM_TARBALL" "$NVIM_URL"
+  tar -xzf "/tmp/$NVIM_TARBALL" -C /tmp
+  rm -rf "$NVIM_DIR/nvim-linux-x86_64"
+  mv /tmp/nvim-linux-x86_64 "$NVIM_DIR/"
+  ln -sf "$NVIM_DIR/nvim-linux-x86_64/bin/nvim" "$NVIM_BIN"
+  echo "$LATEST_SHA" > "$NVIM_DIR/$NVIM_TARBALL.sha256"
+  echo "Neovim nightly installed"
 else
-  echo "Neovim already up to date ($AFTER), skipping build"
+  echo "Neovim nightly already up to date, skipping"
 fi
 
 # FNM (node version manager)
