@@ -1,4 +1,4 @@
-local dev = true
+local dev = true and not vim.g.lightweight
 local e = vim.tbl_extend
 
 local config = function()
