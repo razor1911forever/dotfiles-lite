@@ -93,7 +93,7 @@ fi
 
 # Install omf
 if [[ ! -d $HOME/.local/share/omf ]]; then
-  fish -c "curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish"
+  fish -c "curl -sL https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > /tmp/omf-install.fish && fish /tmp/omf-install.fish --noninteractive"
 fi
 
 cargos=("eza" "du-dust" "procs" "tree-sitter-cli")
