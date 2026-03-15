@@ -58,11 +58,18 @@ if [[ ! -d $NEOVIM_REPO ]]; then
   git clone https://github.com/neovim/neovim.git
 fi
 cd "$NEOVIM_REPO"
+BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
 git fetch --tags --force
 git checkout nightly
-sudo make clean
-sudo make CMAKE_BUILD_TYPE=Release
-sudo make install
+AFTER=$(git rev-parse HEAD)
+if [[ "$BEFORE" != "$AFTER" || ! -x "$(command -v nvim)" ]]; then
+  echo "Neovim changed ($BEFORE -> $AFTER), building..."
+  sudo make clean
+  sudo make CMAKE_BUILD_TYPE=Release
+  sudo make install
+else
+  echo "Neovim already up to date ($AFTER), skipping build"
+fi
 
 # FNM (node version manager - needed for treesitter)
 curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
