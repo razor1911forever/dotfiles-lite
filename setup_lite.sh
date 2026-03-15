@@ -26,6 +26,7 @@ sudo apt-get install -y \
   git \
   jq \
   ripgrep \
+  unzip \
   zoxide
 
 # Fish shell
@@ -73,8 +74,9 @@ fi
 
 # Rust toolchain
 if [[ ! -x "$(command -v rustc)" ]]; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
+source "$HOME/.cargo/env"
 rustup update
 
 cargos=("eza" "du-dust" "procs")
