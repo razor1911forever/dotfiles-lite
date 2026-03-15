@@ -38,6 +38,18 @@ M.disabled_plugins = {
   "godoc.nvim",
   -- Database
   "vim-dadbod-ui",
+  -- Language/tool-specific
+  "leetcode.nvim",
+  "angler.nvim",
+  "nvim-js-actions",
+  "tailwindcss-colorizer-cmp.nvim",
+  "tw-values.nvim",
+  "template-string.nvim",
+  "roslyn.nvim",
+  "telescope-helpgrep.nvim",
+  "neoconf.nvim",
+  "tsnode-marker.nvim",
+  "coderunner.nvim",
   -- Treesitter
   "nvim-treesitter",
   "nvim-treesitter-textobjects",
