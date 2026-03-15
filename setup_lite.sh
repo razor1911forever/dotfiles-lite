@@ -67,6 +67,7 @@ if [[ "$LATEST_SHA" != "$CURRENT_SHA" ]] || [[ ! -x "$NVIM_BIN" ]]; then
   rm -rf "$NVIM_DIR/nvim-linux-x86_64"
   mv /tmp/nvim-linux-x86_64 "$NVIM_DIR/"
   ln -sf "$NVIM_DIR/nvim-linux-x86_64/bin/nvim" "$NVIM_BIN"
+  sudo ln -sf "$NVIM_DIR/nvim-linux-x86_64/bin/nvim" /usr/local/bin/nvim
   echo "$LATEST_SHA" > "$NVIM_DIR/$NVIM_TARBALL.sha256"
   echo "Neovim nightly installed"
 else
@@ -85,42 +86,8 @@ if [[ ! -d $HOME/.local/share/omf ]]; then
   fish -c "curl -sL https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > /tmp/omf-install.fish && fish /tmp/omf-install.fish --noninteractive"
 fi
 
-# Install CLI tools from prebuilt binaries
-BIN="$HOME/.local/bin"
-
-install_github_binary() {
-  local cmd="$1" repo="$2" pattern="$3"
-  if [[ -x "$(command -v "$cmd")" ]]; then
-    echo "$cmd already installed, skipping"
-    return
-  fi
-  echo "Installing $cmd..."
-  local url
-  url=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r ".assets[] | select(.name | test(\"$pattern\")) | .browser_download_url" | head -1)
-  if [[ -z "$url" ]]; then
-    echo "Warning: Could not find binary for $cmd"
-    return
-  fi
-  local tmp="/tmp/$cmd-download"
-  mkdir -p "$tmp"
-  curl -sL "$url" -o "$tmp/archive"
-  if [[ "$url" == *.tar.gz || "$url" == *.tgz ]]; then
-    tar -xzf "$tmp/archive" -C "$tmp"
-  elif [[ "$url" == *.zip ]]; then
-    unzip -qo "$tmp/archive" -d "$tmp"
-  elif [[ "$url" == *.gz ]]; then
-    gunzip -c "$tmp/archive" > "$tmp/$cmd"
-  fi
-  find "$tmp" -name "$cmd" -type f -executable -exec cp {} "$BIN/" \; 2>/dev/null || \
-    find "$tmp" -name "$cmd" -type f -exec cp {} "$BIN/" \;
-  chmod +x "$BIN/$cmd"
-  rm -rf "$tmp"
-}
-
-install_github_binary "eza"          "eza-community/eza"          "x86_64-unknown-linux-gnu\\.tar\\.gz$"
-install_github_binary "dust"         "bootandy/dust"              "x86_64-unknown-linux-gnu\\.tar\\.gz$"
-install_github_binary "procs"        "dalance/procs"              "x86_64-linux\\.zip$"
-install_github_binary "tree-sitter"  "tree-sitter/tree-sitter"    "linux-x64\\.gz$"
+# Install CLI tools from GitHub releases
+bash "$SCRIPT_DIR/scripts/gh-install.sh"
 
 # Install gh
 if [[ ! -x "$(command -v gh)" ]]; then
@@ -131,10 +98,16 @@ if [[ ! -x "$(command -v gh)" ]]; then
     sudo apt install gh -y
 fi
 
-# Set NVIM_LIGHTWEIGHT in fish if not already set
+# Set lite fish config
 LITE_CONF="$HOME/.config/fish/conf.d/lite.fish"
-if [[ ! -f "$LITE_CONF" ]] || ! grep -q NVIM_LIGHTWEIGHT "$LITE_CONF" 2>/dev/null; then
-  echo 'set -gx NVIM_LIGHTWEIGHT 1' >>"$LITE_CONF"
+if [[ ! -f "$LITE_CONF" ]]; then
+  cat > "$LITE_CONF" << 'EOF'
+set -gx NVIM_LIGHTWEIGHT 1
+fish_add_path -g $HOME/.local/bin
+EOF
+elif ! grep -q NVIM_LIGHTWEIGHT "$LITE_CONF" 2>/dev/null; then
+  echo 'set -gx NVIM_LIGHTWEIGHT 1' >> "$LITE_CONF"
+  echo 'fish_add_path -g $HOME/.local/bin' >> "$LITE_CONF"
 fi
 
 # Run scripts
