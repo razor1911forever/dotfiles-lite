@@ -172,5 +172,7 @@ jq -n \
 
 echo ""
 echo "Lite setup complete. Versions saved to $LOCKFILE"
-echo "NVIM_LIGHTWEIGHT=1 has been set for fish shell."
-echo "Restart your shell or run: set -gx NVIM_LIGHTWEIGHT 1"
+if [[ "$NVIM_LIGHTWEIGHT" != "1" ]]; then
+  echo "NVIM_LIGHTWEIGHT=1 has been set for fish shell."
+  echo "Restart your shell or run: set -gx NVIM_LIGHTWEIGHT 1"
+fi
