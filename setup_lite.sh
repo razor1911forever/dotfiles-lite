@@ -90,7 +90,7 @@ if [[ ! -d $HOME/.local/share/omf ]]; then
   fish -c "curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish"
 fi
 
-cargos=("eza" "du-dust" "procs")
+cargos=("eza" "du-dust" "procs" "tree-sitter-cli")
 for cargo in "${cargos[@]}"; do
   if [[ ! -x "$(command -v "$cargo")" ]]; then
     cargo install "$cargo"
