@@ -76,15 +76,9 @@ c("ToggleCmdHeight", f.toggle_cmdheight)
 c("UpdateAndSyncAll", function()
   if not vim.g.lightweight then
     cmd("MasonUpdate")
+    cmd("TSUpdate")
   end
   cmd("Lazy sync")
-  vim.api.nvim_create_autocmd("User", {
-    pattern = "LazySync",
-    once = true,
-    callback = function()
-      cmd("TSUpdate")
-    end,
-  })
 end)
 c("FoldParagraph", function()
   local foldclosed = fn.foldclosed(fn.line("."))
