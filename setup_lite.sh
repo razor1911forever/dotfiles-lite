@@ -125,54 +125,11 @@ NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 echo "Running plugin sync again..."
 NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 
-# Save version lockfile
-LOCKFILE="$SCRIPT_DIR/versions.json"
-get_ver() { command -v "$1" &>/dev/null && "$@" 2>/dev/null | head -1 || echo "not installed"; }
-
-jq -n \
-  --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-  --arg hostname "$(hostname)" \
-  --arg nvim "$(get_ver nvim --version)" \
-  --arg nvim_commit "$(git -C "$HOME/git/neovim" rev-parse --short HEAD 2>/dev/null || echo unknown)" \
-  --arg fish "$(get_ver fish --version)" \
-  --arg rustc "$(get_ver rustc --version)" \
-  --arg cargo "$(get_ver cargo --version)" \
-  --arg go "$(get_ver go version)" \
-  --arg node "$(get_ver fnm current)" \
-  --arg fnm "$(get_ver fnm --version)" \
-  --arg gh "$(get_ver gh --version)" \
-  --arg eza "$(get_ver eza --version)" \
-  --arg dust "$(get_ver dust --version)" \
-  --arg procs "$(get_ver procs --version)" \
-  --arg ripgrep "$(get_ver rg --version)" \
-  --arg fzf "$(get_ver fzf --version)" \
-  --arg zoxide "$(get_ver zoxide --version)" \
-  --arg lazygit "$(get_ver lazygit --version)" \
-  --arg lazydocker "$(get_ver lazydocker --version)" \
-  '{
-    updated: $date,
-    hostname: $hostname,
-    nvim: $nvim,
-    nvim_commit: $nvim_commit,
-    fish: $fish,
-    rustc: $rustc,
-    cargo: $cargo,
-    go: $go,
-    node: $node,
-    fnm: $fnm,
-    gh: $gh,
-    eza: $eza,
-    dust: $dust,
-    procs: $procs,
-    ripgrep: $ripgrep,
-    fzf: $fzf,
-    zoxide: $zoxide,
-    lazygit: $lazygit,
-    lazydocker: $lazydocker
-  }' > "$LOCKFILE"
+# Save versions
+bash "$SCRIPT_DIR/scripts/save-versions.sh" "$SCRIPT_DIR/versions.json"
 
 echo ""
-echo "Lite setup complete. Versions saved to $LOCKFILE"
+echo "Lite setup complete."
 if [[ "$NVIM_LIGHTWEIGHT" != "1" ]]; then
   echo "NVIM_LIGHTWEIGHT=1 has been set for fish shell."
   echo "Restart your shell or run: set -gx NVIM_LIGHTWEIGHT 1"
