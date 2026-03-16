@@ -1,0 +1,18 @@
+services:
+  dothog:
+    image: ghcr.io/catgoose/dothog:latest
+    container_name: dothog
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_LABEL_ENABLE=false
+    restart: unless-stopped

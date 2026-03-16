@@ -104,6 +104,8 @@ fi
 if [[ ! -x "$(command -v docker)" ]]; then
   curl -fsSL https://get.docker.com | sh
   sudo usermod -aG docker "$USER"
+else
+  echo "Docker already installed, skipping"
 fi
 
 # Set lite fish config
