@@ -15,7 +15,7 @@ AFTER=$(git rev-parse HEAD)
 
 if [[ "$BEFORE" != "$AFTER" ]]; then
   echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) Changes detected ($BEFORE -> $AFTER), running setup..."
-  ./setup_lite.sh
+  ./install_lite.sh
 else
   echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) No changes"
 fi
