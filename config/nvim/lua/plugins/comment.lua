@@ -33,7 +33,7 @@ return {
   end,
   event = "InsertEnter",
   lazy = true,
-  dependencies = {
+  dependencies = vim.g.lightweight and {} or {
     "nvim-treesitter/nvim-treesitter",
     "JoosepAlviste/nvim-ts-context-commentstring",
   },
