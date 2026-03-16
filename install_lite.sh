@@ -27,6 +27,7 @@ sudo apt-get install -y \
   jq \
   nala \
   ripgrep \
+  tmux \
   unzip \
   zoxide
 
@@ -50,6 +51,13 @@ for dir in "$CONFIG_DIR"/*/; do
   [[ -d "$target" ]] && rm -rf "$target"
   ln -s "$dir" "$target"
 done
+
+# tmux conf and terminfo
+if [[ -L "$HOME/.tmux.conf" ]]; then
+  unlink "$HOME/.tmux.conf"
+fi
+ln -s "$CONFIG_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf" 2>/dev/null
+tic "$CONFIG_DIR/tmux/terminfo/xterm-256color-italic.terminfo" 2>/dev/null || true
 
 # Install neovim nightly binary
 NVIM_DIR="$HOME/.local/bin"
