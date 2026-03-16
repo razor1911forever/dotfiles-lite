@@ -115,6 +115,7 @@ fi
 # Run scripts
 cd "$SCRIPT_DIR"
 for script in scripts/*.sh; do
+  [[ "$(basename "$script")" == "save-versions.sh" ]] && continue
   bash "$script"
 done
 
