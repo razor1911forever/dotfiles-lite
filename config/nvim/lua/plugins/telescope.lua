@@ -171,7 +171,10 @@ local config = function()
   }
 
   for e in ipairs(extensions) do
-    telescope.load_extension(extensions[e])
+    local ok, err = pcall(telescope.load_extension, extensions[e])
+    if not ok then
+      vim.notify("Telescope: failed to load " .. extensions[e], vim.log.levels.WARN)
+    end
   end
 end
 
