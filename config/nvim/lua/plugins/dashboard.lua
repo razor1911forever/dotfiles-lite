@@ -17,37 +17,31 @@ local header = {
 
 local center = {
   {
-    icon = "󰒲",
     desc = "Lazy sync / TSUpdate",
     key = "s",
     action = "UpdateAndSyncAll",
   },
   {
-    icon = "",
     desc = "Find files",
     key = "f",
     action = "FFFFind",
   },
   {
-    icon = "",
     desc = "Restore session",
     key = "r",
     action = "PersistenceLoad",
   },
   {
-    icon = "",
     desc = "Select session",
     key = "R",
     action = "PersistenceSelect",
   },
   {
-    icon = "",
     desc = "Empty buffer",
     key = "e",
     action = "enew",
   },
   {
-    icon = "",
     desc = "Quit",
     key = "q",
     action = "q",
@@ -56,25 +50,21 @@ local center = {
 
 if not vim.g.lightweight then
   table.insert(center, 2, {
-    icon = "",
     desc = "One step for vimkind",
     key = "l",
     action = "OneStepForVimKindLaunch",
   })
   table.insert(center, 3, {
-    icon = "",
     desc = "Mason",
     key = "m",
     action = "Mason",
   })
   table.insert(center, 4, {
-    icon = "",
     desc = "DiffView main/master",
     key = "d",
     action = "DiffviewMain",
   })
   table.insert(center, 5, {
-    icon = "",
     desc = "DiffView prompt",
     key = "D",
     action = "DiffviewPrompt",
