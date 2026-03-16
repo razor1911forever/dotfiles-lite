@@ -100,6 +100,12 @@ if [[ ! -x "$(command -v gh)" ]]; then
     sudo apt install gh -y
 fi
 
+# Docker
+if [[ ! -x "$(command -v docker)" ]]; then
+  curl -fsSL https://get.docker.com | sh
+  sudo usermod -aG docker "$USER"
+fi
+
 # Set lite fish config
 LITE_CONF="$HOME/.config/fish/conf.d/lite.fish"
 if [[ ! -f "$LITE_CONF" ]]; then
