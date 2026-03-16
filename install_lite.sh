@@ -19,6 +19,7 @@ sudo apt-get upgrade -y
 
 sudo apt-get install -y \
   build-essential \
+  ncurses-term \
   curl \
   fd-find \
   fzf \
