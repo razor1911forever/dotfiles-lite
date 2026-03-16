@@ -24,6 +24,7 @@ sudo apt-get install -y \
   fzf \
   git \
   jq \
+  nala \
   ripgrep \
   unzip \
   zoxide
