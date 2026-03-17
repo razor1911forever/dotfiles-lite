@@ -131,10 +131,7 @@ fi
 
 # Run scripts
 cd "$SCRIPT_DIR"
-for script in scripts/*.sh; do
-  [[ "$(basename "$script")" == "save-versions.sh" ]] && continue
-  [[ "$(basename "$script")" == "install_lite.sh" ]] && continue
-  [[ "$(basename "$script")" == "gh-install.sh" ]] && continue
+for script in scripts/updaters/*.sh; do
   bash "$script"
 done
 
