@@ -6,6 +6,13 @@ services:
       - "127.0.0.1:3000:3000"
     environment:
       - PORT=3000
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
   watchtower:
