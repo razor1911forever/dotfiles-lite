@@ -16,8 +16,14 @@ else
 	bash scripts/install.sh
 endif
 
-provision: ## Provision jor1
+provision: _auto-push ## Provision jor1
 	bash scripts/cloud/jor1-provision.sh
+
+_auto-push:
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Unstaged changes detected, committing and pushing..."; \
+		git add -A && git commit -m "Updating dotfiles" && git push; \
+	fi
 
 update-ip: ## Update Hetzner firewall with current IP
 	bash scripts/cloud/jor1-update-ip.sh
