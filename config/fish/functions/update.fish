@@ -4,7 +4,7 @@ function update
     if test -d $df
         cd $df
         git pull
-        ./install.sh
+        make install
         gg 'Updated dotfiles'
         nvim_repo_sync
         cd $prevd
