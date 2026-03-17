@@ -19,6 +19,9 @@ endif
 provision: _auto-push ## Provision jor1
 	bash scripts/cloud/jor1-provision.sh
 
+provision-force: _auto-push ## Provision jor1 (skip confirmation)
+	FORCE=1 bash scripts/cloud/jor1-provision.sh
+
 _auto-push:
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "Unstaged changes detected, committing and pushing..."; \
