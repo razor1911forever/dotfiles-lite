@@ -1,6 +1,6 @@
 .PHONY: install install-lite provision update-ip versions gh-tools \
        go-update cargo-update fish-update nvim-update lazy-utils \
-       push help
+       push dothog help
 
 # Detect environment: lite repo only has install_lite.sh, not install.sh
 IS_LITE := $(shell test ! -f scripts/install.sh && echo 1)
@@ -58,6 +58,9 @@ nvim-update: ## Update neovim (appimage + source build)
 
 lazy-utils: ## Update lazygit/lazydocker
 	bash scripts/lazy-utils-update.sh
+
+dothog: ## Pull latest dothog image on jor1
+	ssh jor1 'cd ~/git/dotfiles-lite/server && docker compose pull && docker compose up -d'
 
 push: ## Push dotfiles and sync repos
 	fish -c 'dotfiles_push'
