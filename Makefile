@@ -16,8 +16,8 @@ else
 	bash scripts/install.sh
 endif
 
-provision: ## Provision Hetzner VPS
-	bash scripts/hetzner-provision.sh
+provision: ## Provision ash-1 Hetzner VPS
+	bash scripts/ash1-provision.sh
 
 update-ip: ## Update Hetzner firewall with current IP
 	bash scripts/hetzner-update-ip.sh
