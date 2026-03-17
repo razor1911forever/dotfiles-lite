@@ -86,8 +86,14 @@ else
 fi
 
 # FNM (node version manager)
-if [[ -x "$HOME/.local/share/fnm/fnm" ]] || [[ -x "$(command -v fnm)" ]]; then
-  echo "fnm already installed, skipping"
+if command -v fnm &>/dev/null; then
+  INSTALLED_FNM=$(fnm --version 2>/dev/null | awk '{print $2}')
+  LATEST_FNM=$(curl -s https://api.github.com/repos/Schniz/fnm/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+  if [[ -n "$LATEST_FNM" && "$INSTALLED_FNM" == "$LATEST_FNM" ]]; then
+    echo "fnm already at $INSTALLED_FNM"
+  else
+    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+  fi
 else
   curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
 fi
