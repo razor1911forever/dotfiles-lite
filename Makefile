@@ -16,8 +16,8 @@ else
 	bash scripts/install.sh
 endif
 
-provision: ## Provision jor
-	bash scripts/cloud/jor-provision.sh
+provision: ## Provision jor1
+	bash scripts/cloud/jor1-provision.sh
 
 update-ip: ## Update Hetzner firewall with current IP
 	bash scripts/cloud/hetzner-update-ip.sh
