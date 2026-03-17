@@ -29,7 +29,7 @@ VERSIONS=$(jq -n \
   --arg node "$(get_ver fnm current)" \
   --arg fnm "$(get_ver fnm --version)" \
   --arg gh "$(get_ver gh --version)" \
-  --arg eza "$(get_ver eza --version)" \
+  --arg eza "$(eza --version 2>/dev/null | sed -n '2p' || echo 'not installed')" \
   --arg dust "$(get_ver dust --version)" \
   --arg procs "$(get_ver procs --version)" \
   --arg ripgrep "$(get_ver rg --version)" \
