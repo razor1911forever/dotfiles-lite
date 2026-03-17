@@ -20,7 +20,7 @@ provision: ## Provision jor1
 	bash scripts/cloud/jor1-provision.sh
 
 update-ip: ## Update Hetzner firewall with current IP
-	bash scripts/cloud/hetzner-update-ip.sh
+	bash scripts/cloud/jor1-update-ip.sh
 
 versions: ## Save version lockfile
 ifdef IS_LITE
