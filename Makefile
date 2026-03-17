@@ -2,8 +2,8 @@
        go-update cargo-update fish-update nvim-update lazy-utils \
        push help
 
-# Detect environment
-IS_LITE := $(shell test -f scripts/install_lite.sh && echo 1)
+# Detect environment: lite repo only has install_lite.sh, not install.sh
+IS_LITE := $(shell test ! -f scripts/install.sh && echo 1)
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
