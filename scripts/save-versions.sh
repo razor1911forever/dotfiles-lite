@@ -19,7 +19,6 @@ get_ver() { command -v "$1" &>/dev/null && "$@" 2>/dev/null | head -1 || echo "n
 
 VERSIONS=$(jq -n \
   --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-  --arg hostname "$HOSTNAME" \
   --arg nvim "$(get_ver nvim --version)" \
   --arg nvim_commit "$(git -C "$HOME/git/neovim" rev-parse --short HEAD 2>/dev/null || echo unknown)" \
   --arg fish "$(get_ver fish --version)" \
@@ -40,7 +39,6 @@ VERSIONS=$(jq -n \
   --arg yazi "$(get_ver yazi --version)" \
   '{
     updated: $date,
-    hostname: $hostname,
     nvim: $nvim,
     nvim_commit: $nvim_commit,
     fish: $fish,
