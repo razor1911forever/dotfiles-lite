@@ -8,6 +8,7 @@ services:
       - PORT=3000
     volumes:
       - ./logs:/log
+      - ./db:/db
     logging:
       driver: json-file
       options:
