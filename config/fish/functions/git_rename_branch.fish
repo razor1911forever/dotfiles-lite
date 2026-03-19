@@ -1,9 +1,8 @@
 function git_rename_branch
     is_gum || return 1
     git fetch
-    set -l current (git rev-parse --abbrev-ref HEAD)
-    set -l old_branch (gum input --prompt "Source branch> " --value "$current")
-    set -l new_branch (gum input --prompt "New branch> " --value "$old_branch")
+    set -l old_branch (git rev-parse --abbrev-ref HEAD)
+    set -l new_branch (gum input --prompt "New branch name> " --value "$old_branch")
 
     gum confirm "Are you sure you want to rename '$old_branch' to '$new_branch'?"
     if test $status -ne 0
