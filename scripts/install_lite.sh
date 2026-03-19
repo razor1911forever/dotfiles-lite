@@ -85,6 +85,14 @@ else
   echo "Neovim nightly already up to date, skipping"
 fi
 
+# Rust
+if ! command -v rustup &>/dev/null; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  source "$HOME/.cargo/env"
+else
+  echo "Rust already installed, skipping"
+fi
+
 # FNM (node version manager)
 if command -v fnm &>/dev/null; then
   INSTALLED_FNM=$(fnm --version 2>/dev/null | awk '{print $2}')
@@ -142,7 +150,7 @@ for script in scripts/updaters/*.sh; do
 done
 
 # Install neovim plugins
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 echo "Installing neovim plugins..."
 NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 echo "Running plugin sync again..."
