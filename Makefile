@@ -1,6 +1,6 @@
-.PHONY: install install-lite provision update-ip versions gh-tools \
+.PHONY: install install-lite versions gh-tools gh-tools-force \
        go-update cargo-update fish-update nvim-update lazy-utils \
-       push dothog dothog-release help
+       push help
 
 # Detect environment: lite repo only has install_lite.sh, not install.sh
 IS_LITE := $(shell test ! -f scripts/install.sh && echo 1)
@@ -15,21 +15,6 @@ ifdef IS_LITE
 else
 	bash scripts/install.sh
 endif
-
-provision: _auto-push ## Provision jor1
-	bash scripts/cloud/jor1-provision.sh
-
-provision-force: _auto-push ## Provision jor1 (skip confirmation)
-	FORCE=1 bash scripts/cloud/jor1-provision.sh
-
-_auto-push:
-	@if [ -n "$$(git status --porcelain)" ]; then \
-		echo "Unstaged changes detected, committing and pushing..."; \
-		git add -A && git commit -m "Updating dotfiles" && git push; \
-	fi
-
-update-ip: ## Update Hetzner firewall with current IP
-	bash scripts/cloud/jor1-update-ip.sh
 
 versions: ## Save version lockfile
 ifdef IS_LITE
@@ -58,13 +43,6 @@ nvim-update: ## Update neovim (appimage + source build)
 
 lazy-utils: ## Update lazygit/lazydocker
 	bash scripts/lazy-utils-update.sh
-
-dothog: ## Pull latest dothog image on jor1
-	ssh jor1 'cd ~/git/dotfiles-lite/server && docker compose pull && docker compose up -d'
-
-dothog-release: ## Build, push, and deploy dothog to jor1
-	$(MAKE) -C $(HOME)/git/dothog docker-release
-	ssh jor1 'cd ~/git/dotfiles-lite/server && docker compose pull && docker compose up -d'
 
 push: ## Push dotfiles and sync repos
 	fish -c 'dotfiles_push'
