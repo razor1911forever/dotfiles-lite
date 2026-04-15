@@ -6,6 +6,8 @@ function codex_home_path
             echo $HOME/.codex/josh
         case dev1
             echo $HOME/.codex/dev1
+        case personal
+            echo $HOME/.codex/personal
         case '*'
             echo "Unknown Codex profile: $profile" >&2
             return 1

@@ -1,7 +1,7 @@
 function codex-ctl
     set -l profile $argv[1]
     if test -z "$profile"
-        echo "Usage: codex-ctl <josh|dev1> [codex args...]" >&2
+        echo "Usage: codex-ctl <josh|dev1|personal> [codex args...]" >&2
         return 1
     end
 

@@ -180,14 +180,14 @@ return {
         event = "BufReadPost",
         lazy = true,
       },
-      {
-        "bennypowers/template-literal-comments.nvim",
-        opts = true,
-        ft = {
-          "javascript",
-          "typescript",
-        },
-      },
+      -- {
+      --   "bennypowers/template-literal-comments.nvim",
+      --   opts = true,
+      --   ft = {
+      --     "javascript",
+      --     "typescript",
+      --   },
+      -- },
       {
         "LiadOz/nvim-dap-repl-highlights",
         config = true,
