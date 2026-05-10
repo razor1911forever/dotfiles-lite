@@ -4,6 +4,7 @@ local config = function()
       "angular",
       "bash",
       "c",
+      "clojure",
       "commonlisp",
       "css",
       "csv",
