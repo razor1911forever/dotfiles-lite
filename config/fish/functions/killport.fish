@@ -4,11 +4,6 @@ function killport --description 'kills processes running on a port'
         echo 'usage: killport <port>'
         return 1
     end
-    sudo -v
-    if test $status -ne 0
-        echo 'sudo failed'
-        return 1
-    end
     set -l pid (sudo lsof -t -i:$argv[1])
     if test -z $pid
         printf "no process running on port %d\n" $argv[1]
