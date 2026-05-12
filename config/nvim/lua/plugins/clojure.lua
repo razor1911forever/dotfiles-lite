@@ -7,6 +7,60 @@ local conjure_filetypes = {
   "lua",
 }
 
+--[[
+Paredit
+  Use this for editing structure safely.
+
+  | Keys | Kind | Meaning | When to use |
+  |---|---|---|---|
+  | ( | motion | jump to parent form start | you’re nested deep and want the opening ( of the enclosing expr |
+  | ) | motion | jump to parent form end | same, but to the closing boundary |
+  | af | text object | around form | delete/yank/change a whole expression |
+  | if | text object | inside form | rewrite contents but keep delimiters |
+  | ae | text object | around element | operate on one child within a form |
+  | ie | text object | inside element | usually for strings/symbol-ish element edits |
+  | >) | edit op | slurp forwards | current form should include the next sibling |
+  | <) | edit op | barf forwards | current form includes too much; push last child out |
+  | >e | edit op | drag element right | reorder one argument / item / map pair |
+  | <e | edit op | drag element left | same, opposite direction |
+  | >f | edit op | drag form right | move a whole nested expression right |
+  | <f | edit op | drag form left | same, opposite direction |
+  | <space>kr | edit op | raise form | remove one outer wrapper and keep the current form |
+  | <space>kR | edit op | raise element | unwrap one element from its enclosing form |
+]]
+
+--[[ 
+Conjure
+  Use this for REPL/eval workflow.
+
+  | Keys | Kind | Meaning | When to use |
+  |---|---|---|---|
+  | :ConjureSchool | command | interactive tutorial | first-time onboarding |
+  | <space>ee | eval | eval current form | most common command while editing |
+  | <space>er | eval | eval root/enclosing form | eval whole defn, let, etc. |
+  | <space>ew | eval | eval word under cursor | inspect a var quickly |
+  | <space>e! | eval/edit | eval and replace form with result | quick experimentation / reduction |
+  | <space>E | eval | eval visual selection or motion | eval exactly a region you choose |
+  | <space>eb | eval | eval buffer contents | push current unsaved buffer to REPL |
+  | <space>ef | eval | eval file from disk | reload saved file |
+  | <space>ls | log | open log split | inspect results persistently |
+  | <space>lv | log | open log vsplit | same, vertical |
+  | <space>lg | log | toggle log | quick show/hide |
+  | <space>ll | log | jump to latest log entry | follow newest result |
+  | <space>cf | connection | connect using .nrepl-port | attach to project REPL |
+  | <space>cd | connection | disconnect | leave current REPL |
+  | <space>car | connection | restart auto-REPL | restart hidden bb fallback |
+  | <space>vs | inspect | view source of symbol | inspect implementation |
+  | <space>ve | inspect | view last exception | debug failed eval |
+  | <space>x1 | inspect | macroexpand-1 | inspect one macro step |
+  | <space>xr | inspect | macroexpand | inspect macro output |
+  | <space>xa | inspect | macroexpand-all | deeper macro debugging |
+  | <space>tn | test | run current namespace tests | normal test loop |
+  | <space>tc | test | run current test | tight test-focused iteration |
+  | <space>rr | refresh | refresh changed namespaces | common reload flow |
+  | <space>ra | refresh | refresh all namespaces | full refresh |
+]]
+
 local function configure_conjure()
   -- Conjure defaults made explicit for quick reference.
   -- <localleader> is <Space> in this config.
@@ -38,7 +92,14 @@ local function configure_conjure()
 
   -- Clojure nREPL defaults.
   vim.g["conjure#filetype#clojure"] = "conjure.client.clojure.nrepl"
-  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#enabled"] = false
+  -- Use Conjure's built-in hidden Babashka auto-REPL as a fallback for quick
+  -- scratch evaluation. Project REPLs can still live in tmux or a visible
+  -- terminal and Conjure will stop the auto-REPL after connecting elsewhere.
+  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#enabled"] = true
+  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#hidden"] = true
+  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#cmd"] = "bb nrepl-server localhost:$port"
+  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#port_file"] = ".nrepl-port"
+  vim.g["conjure#client#clojure#nrepl#connection#auto_repl#stop_on_new_conn"] = true
   vim.g["conjure#client#clojure#nrepl#mapping#disconnect"] = "cd"
   vim.g["conjure#client#clojure#nrepl#mapping#connect_port_file"] = "cf"
   vim.g["conjure#client#clojure#nrepl#mapping#interrupt"] = "ei"
