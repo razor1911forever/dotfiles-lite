@@ -89,6 +89,8 @@ local function configure_conjure()
   vim.g["conjure#mapping#eval_previous"] = "ep"
   vim.g["conjure#mapping#def_word"] = "gd"
   vim.g["conjure#mapping#doc_word"] = false
+  vim.g["conjure#log#botright"] = true
+  vim.g["conjure#log#split#height"] = 0.3
 
   -- Clojure nREPL defaults.
   vim.g["conjure#filetype#clojure"] = "conjure.client.clojure.nrepl"
@@ -130,8 +132,31 @@ local function configure_conjure()
   vim.g["conjure#client#clojure#nrepl#mapping#auto_repl_restart"] = "car"
 
   vim.g["conjure#log#hud#enabled"] = true
+  vim.g["conjure#log#hud#open_when"] = "log-win-not-visible"
   vim.g["conjure#log#hud#border"] = "rounded"
   vim.g["conjure#extract#tree_sitter#enabled"] = true
+end
+
+local function configure_conjure_output()
+  local hook = require("conjure.hook")
+  local log = require("conjure.log")
+  local default_display_hud = hook.get("display-hud")
+
+  hook.override("display-hud", function(opts)
+    if vim.bo.filetype ~= "clojure" then
+      if default_display_hud then
+        return default_display_hud(opts)
+      end
+      return
+    end
+
+    local current_win = vim.api.nvim_get_current_win()
+    log.split()
+
+    if vim.api.nvim_win_is_valid(current_win) then
+      vim.api.nvim_set_current_win(current_win)
+    end
+  end)
 end
 
 local function setup_cmp_conjure()
@@ -150,6 +175,7 @@ return {
     "Olical/conjure",
     ft = conjure_filetypes,
     init = configure_conjure,
+    config = configure_conjure_output,
     dependencies = {
       "PaterJason/cmp-conjure",
     },
