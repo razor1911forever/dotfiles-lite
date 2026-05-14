@@ -1,9 +1,6 @@
 set -gx EDITOR /usr/local/bin/nvim
 set -gx VISUAL /usr/local/bin/nvim
 set -gx DOTNET_ROOT /home/jtye/.dotnet
-if test (hostname) = DSLD1337
-    set -gx WAYLAND_DISPLAY wayland-0
-end
 
 set -g __fish_git_prompt_show_informative_status 1
 set -g __fish_git_prompt_hide_untrackedfiles 1
