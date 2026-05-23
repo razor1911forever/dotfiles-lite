@@ -58,85 +58,136 @@ function __epub_agg_extract_archive --argument-names archive archive_type dest
     end
 end
 
-function __epub_agg_expand_archive_tree --argument-names archive archive_type
+function __epub_agg_archive_type --argument-names archive
+    if string match -qi '*.zip' -- "$archive"
+        echo zip
+        return 0
+    end
+
+    if string match -qi '*.rar' -- "$archive"
+        echo rar
+        return 0
+    end
+
+    return 1
+end
+
+function __epub_agg_workspace_dest --argument-names base_dir archive workspace
+    set -l archive_parent (path dirname -- "$archive")
+    if test "$archive_parent" = "$base_dir"
+        echo "$workspace"
+        return 0
+    end
+
+    set -l rel_parent (string replace -r "^"(string escape --style=regex -- "$base_dir")"/?" "" -- "$archive_parent")
+    if test -z "$rel_parent"
+        echo "$workspace"
+        return 0
+    end
+
+    echo "$workspace/$rel_parent"
+end
+
+function __epub_agg_expand_archive_group --argument-names base_dir
+    set -l archives $argv[2..-1]
+    if test (count $archives) -eq 0
+        return 1
+    end
+
     set -l workspace (mktemp -d)
     or return 1
 
-    __epub_agg_extract_archive "$archive" "$archive_type" "$workspace"
-    if test $status -ne 0
+    set -l queue
+    set -l queue_dests
+
+    for archive in $archives
+        set -l archive_type (__epub_agg_archive_type "$archive")
+        if test $status -ne 0
+            continue
+        end
+
+        set -l dest (__epub_agg_workspace_dest "$base_dir" "$archive" "$workspace")
+        __epub_agg_ensure_dir "$dest"
+        or begin
+            rm -rf "$workspace"
+            return 1
+        end
+
+        set queue $queue "$archive"
+        set queue_dests $queue_dests "$dest"
+    end
+
+    if test (count $queue) -eq 0
         rm -rf "$workspace"
         return 1
     end
 
-    set -l queue (find "$workspace" -type f \( -iname '*.zip' -o -iname '*.rar' \) -print)
     set -l processed
     set -l index 1
 
     while test $index -le (count $queue)
-        set -l nested_archive $queue[$index]
+        set -l current_archive $queue[$index]
+        set -l current_dest $queue_dests[$index]
         set index (math $index + 1)
 
-        if contains -- "$nested_archive" $processed
+        if contains -- "$current_archive" $processed
             continue
         end
-        set processed $processed "$nested_archive"
+        set processed $processed "$current_archive"
 
-        set -l nested_type zip
-        if string match -qi '*.rar' -- "$nested_archive"
-            set nested_type rar
-        end
-
-        set -l nested_parent (path dirname -- "$nested_archive")
-        set -l nested_dir (mktemp -d "$nested_parent/.epub_agg_extract.XXXXXX" 2>/dev/null)
-        or begin
-            echo "Failed to create extraction directory for $nested_archive" >&2
+        set -l archive_type (__epub_agg_archive_type "$current_archive")
+        if test $status -ne 0
             continue
         end
 
-        if __epub_agg_extract_archive "$nested_archive" "$nested_type" "$nested_dir"
-            set queue $queue (find "$nested_dir" -type f \( -iname '*.zip' -o -iname '*.rar' \) -print)
+        if __epub_agg_extract_archive "$current_archive" "$archive_type" "$current_dest"
+            set -l nested_archives (find "$current_dest" -type f \( -iname '*.zip' -o -iname '*.rar' \) -print)
+            for nested_archive in $nested_archives
+                if contains -- "$nested_archive" $processed
+                    continue
+                end
+
+                set queue $queue "$nested_archive"
+                set queue_dests $queue_dests (path dirname -- "$nested_archive")
+            end
         else
-            rm -rf "$nested_dir"
-            echo "Failed to extract nested archive $nested_archive from $archive" >&2
+            echo "Failed to extract $current_archive" >&2
         end
     end
 
     echo "$workspace"
 end
 
-function __epub_agg_metadata_name --argument-names file
+function __epub_agg_load_rename_helpers
+    if functions -q __epub_rename_apply_metadata_name
+        return 0
+    end
+
     set -l function_file (functions --details epub_agg 2>/dev/null)
     if test -z "$function_file"
         return 1
     end
 
-    set -l helper_script (path dirname -- "$function_file")/epub_agg_metadata.py
-    if not test -f "$helper_script"
+    set -l rename_function (path dirname -- "$function_file")/epub_rename.fish
+    if not test -f "$rename_function"
         return 1
     end
 
-    python3 "$helper_script" "$file" 2>/dev/null
+    source "$rename_function"
 end
 
 function __epub_agg_apply_metadata_name --argument-names out_dir file
-    set -l metadata_name (__epub_agg_metadata_name "$file")
-    if test -z "$metadata_name"
+    if not __epub_agg_load_rename_helpers
+        echo "Failed to load epub_rename helpers for $file" >&2
         echo "$file"
+        return 1
+    end
+
+    __epub_rename_apply_metadata_name "$out_dir" "$file"
+    if test $status -eq 0
         return 0
     end
 
-    if test "$metadata_name" = (basename "$file")
-        echo "$file"
-        return 0
-    end
-
-    set -l target (__epub_agg_target "$out_dir" "$metadata_name")
-    if mv "$file" "$target"
-        echo "$target"
-        return 0
-    end
-
-    echo "Failed to rename $file using epub metadata" >&2
     echo "$file"
     return 1
 end
@@ -163,7 +214,7 @@ function epub_agg --description 'collect epub files from folders and archives in
     set -l out_name "epub_-_$stamp"
     set -l out_dir "$src/$out_name"
     set -l dir_index 2
-    set -l processed_root "$src/__processed"
+    set -l processed_root "$src/__processed/$stamp"
 
     while test -e "$out_dir"
         set out_name "epub_-_$stamp-$dir_index"
@@ -208,72 +259,70 @@ function epub_agg --description 'collect epub files from folders and archives in
         end
     end
 
-    for archive in $root_zip_archives
-        set -l workspace (__epub_agg_expand_archive_tree "$archive" zip)
+    if test (count $root_zip_archives) -gt 0
+        set -l workspace (__epub_agg_expand_archive_group "$src" $root_zip_archives)
         if test $status -ne 0
             set skipped (math $skipped + 1)
-            echo "Failed to extract $archive" >&2
-            continue
-        end
-
-        set -l entries (find "$workspace" -type f -iname '*.epub' -print)
-        for entry in $entries
-            __epub_agg_ensure_dir "$out_dir"
-            or begin
-                rm -rf "$workspace"
-                echo "Failed to create $out_dir" >&2
-                return 1
-            end
-            set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
-            if cp "$entry" "$target"
-                set from_zip (math $from_zip + 1)
-                set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
-                set -l rename_status $status
-                if test $rename_status -eq 0; and test "$final_target" != "$target"
-                    set metadata_renamed (math $metadata_renamed + 1)
+            echo "Failed to expand zip archives in $src" >&2
+        else
+            set -l entries (find "$workspace" -type f -iname '*.epub' -print)
+            for entry in $entries
+                __epub_agg_ensure_dir "$out_dir"
+                or begin
+                    rm -rf "$workspace"
+                    echo "Failed to create $out_dir" >&2
+                    return 1
                 end
-            else
-                rm -f "$target"
-                set skipped (math $skipped + 1)
-                echo "Failed to copy $entry from $archive" >&2
+                set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
+                if cp "$entry" "$target"
+                    set from_zip (math $from_zip + 1)
+                    set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
+                    set -l rename_status $status
+                    if test $rename_status -eq 0; and test "$final_target" != "$target"
+                        set metadata_renamed (math $metadata_renamed + 1)
+                    end
+                else
+                    rm -f "$target"
+                    set skipped (math $skipped + 1)
+                    echo "Failed to copy $entry from zip archives in $src" >&2
+                end
             end
-        end
 
-        rm -rf "$workspace"
+            rm -rf "$workspace"
+        end
     end
 
-    for archive in $root_rar_archives
-        set -l workspace (__epub_agg_expand_archive_tree "$archive" rar)
+    if test (count $root_rar_archives) -gt 0
+        set -l workspace (__epub_agg_expand_archive_group "$src" $root_rar_archives)
         if test $status -ne 0
             set skipped (math $skipped + 1)
-            echo "Failed to extract $archive" >&2
-            continue
-        end
-
-        set -l entries (find "$workspace" -type f -iname '*.epub' -print)
-        for entry in $entries
-            __epub_agg_ensure_dir "$out_dir"
-            or begin
-                rm -rf "$workspace"
-                echo "Failed to create $out_dir" >&2
-                return 1
-            end
-            set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
-            if cp "$entry" "$target"
-                set from_rar (math $from_rar + 1)
-                set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
-                set -l rename_status $status
-                if test $rename_status -eq 0; and test "$final_target" != "$target"
-                    set metadata_renamed (math $metadata_renamed + 1)
+            echo "Failed to expand rar archives in $src" >&2
+        else
+            set -l entries (find "$workspace" -type f -iname '*.epub' -print)
+            for entry in $entries
+                __epub_agg_ensure_dir "$out_dir"
+                or begin
+                    rm -rf "$workspace"
+                    echo "Failed to create $out_dir" >&2
+                    return 1
                 end
-            else
-                rm -f "$target"
-                set skipped (math $skipped + 1)
-                echo "Failed to copy $entry from $archive" >&2
+                set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
+                if cp "$entry" "$target"
+                    set from_rar (math $from_rar + 1)
+                    set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
+                    set -l rename_status $status
+                    if test $rename_status -eq 0; and test "$final_target" != "$target"
+                        set metadata_renamed (math $metadata_renamed + 1)
+                    end
+                else
+                    rm -f "$target"
+                    set skipped (math $skipped + 1)
+                    echo "Failed to copy $entry from rar archives in $src" >&2
+                end
             end
-        end
 
-        rm -rf "$workspace"
+            rm -rf "$workspace"
+        end
     end
 
     for dir in $source_dirs
@@ -306,72 +355,70 @@ function epub_agg --description 'collect epub files from folders and archives in
             end
         end
 
-        for archive in $dir_zip_archives
-            set -l workspace (__epub_agg_expand_archive_tree "$archive" zip)
+        if test (count $dir_zip_archives) -gt 0
+            set -l workspace (__epub_agg_expand_archive_group "$dir" $dir_zip_archives)
             if test $status -ne 0
                 set skipped (math $skipped + 1)
-                echo "Failed to extract $archive" >&2
-                continue
-            end
-
-            set -l entries (find "$workspace" -type f -iname '*.epub' -print)
-            for entry in $entries
-                __epub_agg_ensure_dir "$out_dir"
-                or begin
-                    rm -rf "$workspace"
-                    echo "Failed to create $out_dir" >&2
-                    return 1
-                end
-                set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
-                if cp "$entry" "$target"
-                    set from_zip (math $from_zip + 1)
-                    set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
-                    set -l rename_status $status
-                    if test $rename_status -eq 0; and test "$final_target" != "$target"
-                        set metadata_renamed (math $metadata_renamed + 1)
+                echo "Failed to expand zip archives in $dir" >&2
+            else
+                set -l entries (find "$workspace" -type f -iname '*.epub' -print)
+                for entry in $entries
+                    __epub_agg_ensure_dir "$out_dir"
+                    or begin
+                        rm -rf "$workspace"
+                        echo "Failed to create $out_dir" >&2
+                        return 1
                     end
-                else
-                    rm -f "$target"
-                    set skipped (math $skipped + 1)
-                    echo "Failed to copy $entry from $archive" >&2
+                    set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
+                    if cp "$entry" "$target"
+                        set from_zip (math $from_zip + 1)
+                        set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
+                        set -l rename_status $status
+                        if test $rename_status -eq 0; and test "$final_target" != "$target"
+                            set metadata_renamed (math $metadata_renamed + 1)
+                        end
+                    else
+                        rm -f "$target"
+                        set skipped (math $skipped + 1)
+                        echo "Failed to copy $entry from zip archives in $dir" >&2
+                    end
                 end
-            end
 
-            rm -rf "$workspace"
+                rm -rf "$workspace"
+            end
         end
 
-        for archive in $dir_rar_archives
-            set -l workspace (__epub_agg_expand_archive_tree "$archive" rar)
+        if test (count $dir_rar_archives) -gt 0
+            set -l workspace (__epub_agg_expand_archive_group "$dir" $dir_rar_archives)
             if test $status -ne 0
                 set skipped (math $skipped + 1)
-                echo "Failed to extract $archive" >&2
-                continue
-            end
-
-            set -l entries (find "$workspace" -type f -iname '*.epub' -print)
-            for entry in $entries
-                __epub_agg_ensure_dir "$out_dir"
-                or begin
-                    rm -rf "$workspace"
-                    echo "Failed to create $out_dir" >&2
-                    return 1
-                end
-                set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
-                if cp "$entry" "$target"
-                    set from_rar (math $from_rar + 1)
-                    set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
-                    set -l rename_status $status
-                    if test $rename_status -eq 0; and test "$final_target" != "$target"
-                        set metadata_renamed (math $metadata_renamed + 1)
+                echo "Failed to expand rar archives in $dir" >&2
+            else
+                set -l entries (find "$workspace" -type f -iname '*.epub' -print)
+                for entry in $entries
+                    __epub_agg_ensure_dir "$out_dir"
+                    or begin
+                        rm -rf "$workspace"
+                        echo "Failed to create $out_dir" >&2
+                        return 1
                     end
-                else
-                    rm -f "$target"
-                    set skipped (math $skipped + 1)
-                    echo "Failed to copy $entry from $archive" >&2
+                    set -l target (__epub_agg_target "$out_dir" (basename "$entry"))
+                    if cp "$entry" "$target"
+                        set from_rar (math $from_rar + 1)
+                        set -l final_target (__epub_agg_apply_metadata_name "$out_dir" "$target")
+                        set -l rename_status $status
+                        if test $rename_status -eq 0; and test "$final_target" != "$target"
+                            set metadata_renamed (math $metadata_renamed + 1)
+                        end
+                    else
+                        rm -f "$target"
+                        set skipped (math $skipped + 1)
+                        echo "Failed to copy $entry from rar archives in $dir" >&2
+                    end
                 end
-            end
 
-            rm -rf "$workspace"
+                rm -rf "$workspace"
+            end
         end
 
         if test "$had_candidates" -eq 1
