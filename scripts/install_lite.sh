@@ -71,10 +71,12 @@ fi
 
 if [[ "$LATEST_SHA" != "$CURRENT_SHA" ]] || [[ ! -x "$NVIM_BIN" ]]; then
   echo "Downloading neovim nightly..."
-  curl -Lo "/tmp/$NVIM_TARBALL" "$NVIM_URL"
-  tar -xzf "/tmp/$NVIM_TARBALL" -C /tmp
+  NVIM_TMP=$(mktemp -d)
+  trap 'rm -rf "$NVIM_TMP"' EXIT
+  curl -Lo "$NVIM_TMP/$NVIM_TARBALL" "$NVIM_URL"
+  tar -xzf "$NVIM_TMP/$NVIM_TARBALL" -C "$NVIM_TMP"
   rm -rf "$NVIM_DIR/nvim-linux-x86_64"
-  mv /tmp/nvim-linux-x86_64 "$NVIM_DIR/"
+  mv "$NVIM_TMP/nvim-linux-x86_64" "$NVIM_DIR/"
   ln -sf "$NVIM_DIR/nvim-linux-x86_64/bin/nvim" "$NVIM_BIN"
   sudo ln -sf "$NVIM_DIR/nvim-linux-x86_64/bin/nvim" /usr/local/bin/nvim
   echo "$LATEST_SHA" > "$NVIM_DIR/$NVIM_TARBALL.sha256"
