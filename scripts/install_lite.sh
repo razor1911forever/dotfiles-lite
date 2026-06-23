@@ -129,17 +129,13 @@ else
   echo "Docker already installed, skipping"
 fi
 
-# Set lite fish config
-LITE_CONF="$HOME/.config/fish/conf.d/lite.fish"
-if [[ ! -f "$LITE_CONF" ]]; then
-  cat > "$LITE_CONF" << 'EOF'
+# Lite fish state lives outside the symlinked repo; conf.d/lite.fish sources it
+LITE_STATE_DIR="$HOME/.local/state/dotfiles-lite"
+mkdir -p "$LITE_STATE_DIR"
+cat > "$LITE_STATE_DIR/lite.fish" << 'EOF'
 set -gx NVIM_LIGHTWEIGHT 1
 fish_add_path -g $HOME/.local/bin
 EOF
-elif ! grep -q NVIM_LIGHTWEIGHT "$LITE_CONF" 2>/dev/null; then
-  echo 'set -gx NVIM_LIGHTWEIGHT 1' >> "$LITE_CONF"
-  echo 'fish_add_path -g $HOME/.local/bin' >> "$LITE_CONF"
-fi
 
 # Run scripts
 cd "$SCRIPT_DIR"
@@ -155,7 +151,7 @@ echo "Running plugin sync again..."
 NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 
 # Save versions
-bash "$SCRIPT_DIR/scripts/save-versions.sh" "$SCRIPT_DIR/versions.json"
+bash "$SCRIPT_DIR/scripts/save-versions.sh" "$LITE_STATE_DIR/versions.json"
 
 echo ""
 echo "Lite setup complete."

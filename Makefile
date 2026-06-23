@@ -18,7 +18,8 @@ endif
 
 versions: ## Save version lockfile
 ifdef IS_LITE
-	bash scripts/save-versions.sh versions.json
+	mkdir -p $$HOME/.local/state/dotfiles-lite
+	bash scripts/save-versions.sh $$HOME/.local/state/dotfiles-lite/versions.json
 else
 	bash scripts/save-versions.sh versions.json --keyed
 endif
