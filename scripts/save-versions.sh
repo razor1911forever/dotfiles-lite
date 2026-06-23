@@ -36,6 +36,7 @@ VERSIONS=$(jq -n \
   --arg zoxide "$(get_ver zoxide --version)" \
   --arg lazygit "$(get_ver lazygit --version)" \
   --arg lazydocker "$(get_ver lazydocker --version)" \
+  --arg lazysql "$(command -v lazysql &>/dev/null && lazysql --version 2>&1 | head -1 || echo "not installed")" \
   --arg yazi "$(get_ver yazi --version)" \
   '{
     updated: $date,
@@ -56,6 +57,7 @@ VERSIONS=$(jq -n \
     zoxide: $zoxide,
     lazygit: $lazygit,
     lazydocker: $lazydocker,
+    lazysql: $lazysql,
     yazi: $yazi
   }')
 

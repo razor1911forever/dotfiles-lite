@@ -24,8 +24,18 @@ if command -v go &>/dev/null; then
   LATEST=$(wget --connect-timeout 5 -qO- https://go.dev/dl/?mode=json | jq -r '.[0].version' | sed 's/^go//')
   if [[ -n "$LATEST" && "$INSTALLED" == "$LATEST" ]]; then
     echo "Go already at latest ($INSTALLED), skipping"
-    exit 0
+  else
+    sudo ./update-golang.sh
   fi
+else
+  sudo ./update-golang.sh
 fi
 
-sudo ./update-golang.sh
+[[ -f /etc/profile.d/golang_path.sh ]] && source /etc/profile.d/golang_path.sh
+if ! command -v go &>/dev/null; then
+  echo "go is not installed or not on PATH"
+  exit 1
+fi
+export PATH="$(go env GOPATH)/bin:$PATH"
+
+go install github.com/jorgerojas26/lazysql@latest
