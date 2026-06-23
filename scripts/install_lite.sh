@@ -36,9 +36,7 @@ if [[ ! -f /etc/apt/sources.list.d/fish-shell-ubuntu-release-4-noble.sources ]];
   sudo apt-add-repository ppa:fish-shell/release-4
   sudo apt-get update -q
 fi
-if [[ ! -x "$(command -v fish)" ]]; then
-  sudo apt-get install fish -y -qq
-fi
+sudo apt-get install fish -y -qq
 
 # Create directories
 mkdir -p "$HOME/.config" "$HOME/.local/bin" "$HOME/.local/share"
