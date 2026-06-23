@@ -154,7 +154,7 @@ NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 bash "$SCRIPT_DIR/scripts/save-versions.sh" "$LITE_STATE_DIR/versions.json"
 
 if git -C "$SCRIPT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  DIRTY_STATUS=$(git -C "$SCRIPT_DIR" status --short | grep -v '^ M config/nvim/lazy-lock.json$' || true)
+  DIRTY_STATUS=$(git -C "$SCRIPT_DIR" status --short)
   if [[ -n "$DIRTY_STATUS" ]]; then
     echo ""
     echo "ERROR: dotfiles-lite setup left the checkout dirty."
