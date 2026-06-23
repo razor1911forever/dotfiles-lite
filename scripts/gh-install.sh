@@ -32,6 +32,7 @@ get_download_url() {
 
 install_gh_binary() {
   local cmd="$1" repo="$2" pattern="$3" version_cmd="${4:---version}" version_grep="${5:-[0-9]+\.[0-9]+}"
+  local managed_bin="$BIN/$cmd"
 
   local latest
   latest=$(get_latest_tag "$repo")
@@ -41,9 +42,16 @@ install_gh_binary() {
     return 1
   fi
 
-  if [[ "$FORCE" != "--force" ]] && command -v "$cmd" &>/dev/null; then
+  local check_cmd=""
+  if [[ -x "$managed_bin" ]]; then
+    check_cmd="$managed_bin"
+  elif command -v "$cmd" &>/dev/null; then
+    check_cmd=$(command -v "$cmd")
+  fi
+
+  if [[ "$FORCE" != "--force" && -n "$check_cmd" ]]; then
     local installed
-    installed=$("$cmd" $version_cmd 2>/dev/null | grep -oP "$version_grep" | head -1)
+    installed=$("$check_cmd" $version_cmd 2>/dev/null | grep -oP "$version_grep" | head -1)
     if [[ "$installed" == "$latest" ]]; then
       echo "  $cmd: $installed (up to date)"
       return
@@ -72,8 +80,16 @@ install_gh_binary() {
     *)              cp "$tmp/archive" "$tmp/$cmd" ;;
   esac
 
-  find "$tmp" -name "$cmd" -type f | head -1 | xargs -I{} cp {} "$BIN/$cmd"
-  chmod +x "$BIN/$cmd"
+  local extracted
+  extracted=$(find "$tmp" -name "$cmd" -type f | head -1)
+  if [[ -z "$extracted" ]]; then
+    echo "  $cmd: couldn't find binary '$cmd' in release archive"
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  cp "$extracted" "$managed_bin"
+  chmod +x "$managed_bin"
   rm -rf "$tmp"
   echo "  $cmd: installed $latest"
 }
