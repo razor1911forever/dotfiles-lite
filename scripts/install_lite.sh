@@ -153,6 +153,17 @@ NVIM_LIGHTWEIGHT=1 nvim --headless "+Lazy! sync" +qa
 # Save versions
 bash "$SCRIPT_DIR/scripts/save-versions.sh" "$LITE_STATE_DIR/versions.json"
 
+if git -C "$SCRIPT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [[ -n "$(git -C "$SCRIPT_DIR" status --short)" ]]; then
+    echo ""
+    echo "ERROR: dotfiles-lite setup left the checkout dirty."
+    echo "Report this upstream: https://github.com/razor1911forever/dotfiles-lite/issues"
+    echo ""
+    git -C "$SCRIPT_DIR" status --short
+    exit 1
+  fi
+fi
+
 echo ""
 echo "Lite setup complete."
 if [[ "$NVIM_LIGHTWEIGHT" != "1" ]]; then
