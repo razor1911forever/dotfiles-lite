@@ -98,9 +98,8 @@ local function configure_conjure()
 
   -- Clojure nREPL defaults.
   vim.g["conjure#filetype#clojure"] = "conjure.client.clojure.nrepl"
-  -- Use Conjure's built-in hidden Babashka auto-REPL as a fallback for quick
-  -- scratch evaluation. Project REPLs can still live in tmux or a visible
-  -- terminal and Conjure will stop the auto-REPL after connecting elsewhere.
+  -- Default hidden auto-REPL command. maybe_autoconnect_clojure overrides it per
+  -- buffer (clojure_auto_repl_cmd); Babashka stays the fallback for scratch files.
   vim.g["conjure#client#clojure#nrepl#connection#auto_repl#enabled"] = true
   vim.g["conjure#client#clojure#nrepl#connection#auto_repl#hidden"] = true
   vim.g["conjure#client#clojure#nrepl#connection#auto_repl#cmd"] = "bb nrepl-server localhost:$port"
@@ -274,6 +273,23 @@ local clojure_root_markers = {
 local clojure_port_markers = { ".nrepl-port", ".shadow-cljs/nrepl.port" }
 local clojure_connect_pending = false
 
+local clojure_bb_auto_repl_cmd = "bb nrepl-server localhost:$port"
+local clojure_jvm_auto_repl_cmd =
+  "clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.3.1\"}}}' -M -m nrepl.cmdline --port $port"
+
+-- deps.edn projects need a JVM nREPL; Babashka/SCI can't load their classpath.
+local function clojure_auto_repl_cmd(root)
+  if root then
+    if vim.fn.filereadable(vim.fs.joinpath(root, "deps.edn")) == 1 then
+      return clojure_jvm_auto_repl_cmd
+    end
+    if vim.fn.filereadable(vim.fs.joinpath(root, "bb.edn")) == 1 then
+      return clojure_bb_auto_repl_cmd
+    end
+  end
+  return clojure_bb_auto_repl_cmd
+end
+
 local function clojure_buf_path(bufnr)
   local path = vim.api.nvim_buf_get_name(bufnr)
   if path == "" then
@@ -300,6 +316,37 @@ local function clojure_port_file(bufnr)
     path = vim.fs.dirname(path),
     upward = true,
   })[1]
+end
+
+local function clojure_port_open(port, timeout_ms)
+  local uv = vim.uv or vim.loop
+  local client = uv.new_tcp()
+  local done, open = false, false
+  client:connect("127.0.0.1", port, function(err)
+    open = err == nil
+    done = true
+    client:close()
+  end)
+  vim.wait(timeout_ms or 200, function()
+    return done
+  end, 10)
+  if not done then
+    pcall(function()
+      if not client:is_closing() then
+        client:close()
+      end
+    end)
+  end
+  return open
+end
+
+-- A port file left by a REPL that died without cleanup points at a dead port;
+-- connecting to it loops on ECONNREFUSED. Skip stale files so autoconnect can
+-- start a fresh REPL instead.
+local function clojure_port_file_live(port_file)
+  local lines = vim.fn.readfile(port_file, "", 1)
+  local port = tonumber(lines and lines[1])
+  return port ~= nil and clojure_port_open(port)
 end
 
 local function with_root_cwd(root, f)
@@ -346,6 +393,26 @@ local function retry_clojure_connect(connect_fn, state, remaining)
   end, 250)
 end
 
+-- Poll the port silently until the REPL accepts connections, then connect once.
+-- Probing first keeps a slow JVM nREPL boot from spraying ECONNREFUSED into the
+-- log, which connecting on a fixed retry timer would.
+local function connect_when_port_open(port, connect_fn, remaining)
+  if clojure_port_open(port, 100) then
+    connect_fn()
+    clojure_connect_pending = false
+    return
+  end
+
+  if remaining <= 0 then
+    clojure_connect_pending = false
+    return
+  end
+
+  vim.defer_fn(function()
+    connect_when_port_open(port, connect_fn, remaining - 1)
+  end, 250)
+end
+
 local function maybe_autoconnect_clojure(bufnr)
   if vim.bo[bufnr].filetype ~= "clojure" or clojure_connect_pending then
     return
@@ -362,7 +429,7 @@ local function maybe_autoconnect_clojure(bufnr)
   clojure_connect_pending = true
   local port_file = clojure_port_file(bufnr)
 
-  if port_file then
+  if port_file and clojure_port_file_live(port_file) then
     local function connect_existing_repl()
       action["connect-port-file"]({
         ["silent?"] = true,
@@ -375,27 +442,26 @@ local function maybe_autoconnect_clojure(bufnr)
   end
 
   local root = clojure_buf_root(bufnr)
-  local function connect_auto_repl()
-    with_root_cwd(root, function()
-      auto_repl["upsert-auto-repl-proc"]()
+  vim.b[bufnr]["conjure#client#clojure#nrepl#connection#auto_repl#cmd"] =
+    clojure_auto_repl_cmd(root)
 
-      local port = state.get()["auto-repl-port"]
-      if port then
-        action["connect-host-port"]({
-          host = "127.0.0.1",
-          port = tostring(port),
-        })
-      end
-    end)
+  local port = with_root_cwd(root, function()
+    auto_repl["upsert-auto-repl-proc"]()
+    return state.get()["auto-repl-port"]
+  end)
+
+  if not port then
+    clojure_connect_pending = false
+    return
   end
 
-  with_root_cwd(root, function()
-    auto_repl["upsert-auto-repl-proc"]()
-  end)
-  vim.defer_fn(function()
-    connect_auto_repl()
-    retry_clojure_connect(connect_auto_repl, state, 8)
-  end, 1000)
+  -- JVM nREPL can take several seconds to boot; poll up to ~15s.
+  connect_when_port_open(tonumber(port), function()
+    action["connect-host-port"]({
+      host = "127.0.0.1",
+      port = tostring(port),
+    })
+  end, 60)
 end
 
 local function setup_clojure_autoconnect()
