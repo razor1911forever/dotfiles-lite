@@ -270,6 +270,15 @@ local function buf_path(bufnr)
   return vim.fs.normalize(path)
 end
 
+local function real_file_buffer(bufnr)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return false
+  end
+
+  local path = buf_path(bufnr)
+  return vim.bo[bufnr].buflisted and vim.bo[bufnr].buftype == "" and path ~= nil and vim.fn.filereadable(path) == 1
+end
+
 local function buf_root(bufnr)
   local path = buf_path(bufnr)
   if not path then
@@ -380,7 +389,7 @@ local function connect_when_port_open(port, connect_fn, remaining)
 end
 
 local function maybe_autoconnect(bufnr)
-  if vim.bo[bufnr].filetype ~= "clojure" or connect_pending then
+  if not real_file_buffer(bufnr) or vim.bo[bufnr].filetype ~= "clojure" or connect_pending then
     return
   end
 
