@@ -112,7 +112,7 @@ if [[ ! -d $HOME/.local/share/omf ]]; then
 fi
 
 # Install CLI tools from GitHub releases
-bash "$SCRIPT_DIR/scripts/gh-install.sh"
+DOTFILES_LITE=1 bash "$SCRIPT_DIR/scripts/gh-install.sh"
 
 # Install gh
 if [[ ! -x "$(command -v gh)" ]]; then
@@ -142,6 +142,11 @@ EOF
 # Run scripts
 cd "$SCRIPT_DIR"
 for script in scripts/updaters/*.sh; do
+  if [[ "$(basename "$script")" == "clojure.sh" ]]; then
+    echo "Skipping Clojure updater in lite install"
+    continue
+  fi
+
   bash "$script"
 done
 

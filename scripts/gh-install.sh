@@ -104,3 +104,7 @@ install_gh_binary    tree-sitter  tree-sitter/tree-sitter      "^tree-sitter-lin
 install_gh_binary    lazygit      jesseduffield/lazygit        "linux_x86_64\\.tar\\.gz$"                 "--version"    "version=\\K[0-9]+\\.[0-9]+\\.[0-9]+"
 install_gh_binary    lazydocker   jesseduffield/lazydocker     "Linux_x86_64\\.tar\\.gz$"                 "--version"    "Version: \\K[0-9]+\\.[0-9]+\\.[0-9]+"
 install_gh_binary    yazi         sxyazi/yazi                  "yazi-x86_64-unknown-linux-gnu\\.zip$"     "--version"    "[0-9]+\\.[0-9]+\\.[0-9]+"
+
+if [[ "${DOTFILES_LITE:-}" != "1" ]]; then
+  install_gh_binary  exercism     exercism/cli                 "linux-x86_64\\.tar\\.gz$"                 "version"      "[0-9]+\\.[0-9]+\\.[0-9]+"
+fi
