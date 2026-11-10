@@ -87,7 +87,7 @@ fi
 
 # Rust
 if ! command -v rustup &>/dev/null; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
   source "$HOME/.cargo/env"
 else
   echo "Rust already installed, skipping"
@@ -137,6 +137,9 @@ mkdir -p "$LITE_STATE_DIR"
 cat > "$LITE_STATE_DIR/lite.fish" << 'EOF'
 set -gx NVIM_LIGHTWEIGHT 1
 fish_add_path -g $HOME/.local/bin
+if test -f "$HOME/.cargo/env.fish"
+    source "$HOME/.cargo/env.fish"
+end
 EOF
 
 # Run scripts
